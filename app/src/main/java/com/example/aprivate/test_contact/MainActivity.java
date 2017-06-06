@@ -27,20 +27,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void test() {
-        // get the phone number
-        Cursor pCur = getApplicationContext().getContentResolver().query(
-                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+        Contact contact;
+        Cursor cursor=getApplicationContext().getContentResolver().query(
+                ContactsContract.Contacts.CONTENT_URI,
                 null,
                 null,
                 null,
-                null);
-        if (pCur.getCount() > 0) {
-            while (pCur.moveToNext()) {
-                String phone = pCur.getString(
-                        pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                Log.i(TAG, "phone=" + phone);
+                null
+        );
+
+        if(cursor.getCount() > 0)
+        {
+            while(cursor.moveToNext())
+            {
+                contact = new Contact();
+                final String id=cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                contact.setId(id);
+                String name=cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                contact.setContactName(name);
+                if(Integer.parseInt(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0)
+                {
+                    Log.i(TAG, "Contact name=" + name + ", Id=" + id);
+                    // get the phone number
+                    Cursor pCur=getApplicationContext().getContentResolver().query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id},
+                            null);
+                    while(pCur.moveToNext())
+                    {
+                        String phone=pCur.getString(
+                                pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        contact.setPhoneNumber(phone);
+                        Log.i(TAG, "phone=" + phone);
+                    }
+                    pCur.close();
+                }
             }
         }
-        pCur.close();
     }
 }
